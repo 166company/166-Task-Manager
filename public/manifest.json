@@ -1,0 +1,16 @@
+{
+  "name": "166 Task Manager",
+  "short_name": "166Tasks",
+  "description": "Komanda iş üçün tapşırıq idarəetmə sistemi",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4F46E5",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

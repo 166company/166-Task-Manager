@@ -1,0 +1,119 @@
+{
+  "app": {
+    "name": "166 Task Manager",
+    "tagline": "Komanda işi üçün tapşırıq idarəetmə sistemi"
+  },
+  "auth": {
+    "login": "Daxil ol",
+    "register": "Qeydiyyat",
+    "logout": "Çıxış",
+    "email": "Email",
+    "password": "Şifrə",
+    "fullName": "Ad Soyad",
+    "loginWith": "{{provider}} ilə daxil ol",
+    "noAccount": "Hesabınız yoxdur?",
+    "hasAccount": "Artıq hesabınız var?",
+    "forgotPassword": "Şifrəni unutmusunuz?",
+    "resetPassword": "Şifrəni yenilə",
+    "confirmPassword": "Şifrəni təsdiqlə"
+  },
+  "nav": {
+    "dashboard": "İdarə paneli",
+    "projects": "Layihələr",
+    "settings": "Parametrlər",
+    "profile": "Profil",
+    "myTasks": "Mənim tapşırıqlarım",
+    "today": "Bu gün",
+    "thisWeek": "Bu həftə",
+    "overdue": "Gecikmiş",
+    "completed": "Tamamlanmış"
+  },
+  "views": {
+    "kanban": "Kanban",
+    "list": "Siyahı",
+    "table": "Cədvəl",
+    "calendar": "Təqvim",
+    "gantt": "Gantt",
+    "mindmap": "Mind Map"
+  },
+  "task": {
+    "title": "Başlıq",
+    "description": "Təsvir",
+    "status": "Status",
+    "priority": "Prioritet",
+    "assignee": "Tapşırılan şəxs",
+    "dueDate": "Son tarix",
+    "startDate": "Başlanğıc tarixi",
+    "labels": "Etiketlər",
+    "subtasks": "Alt-tapşırıqlar",
+    "comments": "Şərhlər",
+    "attachments": "Əlavələr",
+    "activity": "Aktivlik",
+    "create": "Yeni tapşırıq",
+    "edit": "Redaktə et",
+    "delete": "Sil",
+    "duplicate": "Kopyala",
+    "noTasks": "Tapşırıq yoxdur",
+    "addComment": "Şərh əlavə et",
+    "addSubtask": "Alt-tapşırıq əlavə et"
+  },
+  "status": {
+    "todo": "Gözləyir",
+    "in_progress": "İcra edilir",
+    "review": "Yoxlanılır",
+    "done": "Tamamlandı"
+  },
+  "priority": {
+    "urgent": "Təcili",
+    "high": "Yüksək",
+    "medium": "Orta",
+    "low": "Aşağı"
+  },
+  "workspace": {
+    "create": "Workspace yarat",
+    "name": "Workspace adı",
+    "description": "Təsvir",
+    "members": "Üzvlər",
+    "invite": "Dəvət et",
+    "role": "Rol"
+  },
+  "project": {
+    "create": "Layihə yarat",
+    "name": "Layihə adı",
+    "color": "Rəng",
+    "icon": "İkon",
+    "archive": "Arxivlə",
+    "delete": "Sil"
+  },
+  "common": {
+    "save": "Saxla",
+    "cancel": "İmtina",
+    "delete": "Sil",
+    "edit": "Redaktə",
+    "create": "Yarat",
+    "search": "Axtar...",
+    "filter": "Filtr",
+    "sort": "Sırala",
+    "loading": "Yüklənir...",
+    "noData": "Məlumat yoxdur",
+    "confirm": "Təsdiqlə",
+    "close": "Bağla",
+    "back": "Geri",
+    "next": "İrəli",
+    "all": "Hamısı",
+    "none": "Heç biri"
+  },
+  "errors": {
+    "required": "Bu sahə məcburidir",
+    "invalidEmail": "Email ünvanı düzgün deyil",
+    "passwordShort": "Şifrə minimum 6 simvol olmalıdır",
+    "generic": "Bir xəta baş verdi. Yenidən cəhd edin."
+  },
+  "success": {
+    "saved": "Uğurla saxlanıldı",
+    "deleted": "Uğurla silindi",
+    "created": "Uğurla yaradıldı",
+    "updated": "Uğurla yeniləndi",
+    "invited": "Dəvətnamə göndərildi"
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "app": {
+    "name": "166 Task Manager",
+    "tagline": "Team task management"
+  },
+  "auth": {
+    "login": "Sign In",
+    "register": "Sign Up",
+    "logout": "Sign Out",
+    "email": "Email",
+    "password": "Password",
+    "fullName": "Full Name",
+    "loginWith": "Continue with {{provider}}",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "forgotPassword": "Forgot password?",
+    "resetPassword": "Reset Password",
+    "confirmPassword": "Confirm Password"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "projects": "Projects",
+    "settings": "Settings",
+    "profile": "Profile",
+    "myTasks": "My Tasks",
+    "today": "Today",
+    "thisWeek": "This Week",
+    "overdue": "Overdue",
+    "completed": "Completed"
+  },
+  "views": {
+    "kanban": "Kanban",
+    "list": "List",
+    "table": "Table",
+    "calendar": "Calendar",
+    "gantt": "Gantt",
+    "mindmap": "Mind Map"
+  },
+  "task": {
+    "title": "Title",
+    "description": "Description",
+    "status": "Status",
+    "priority": "Priority",
+    "assignee": "Assignee",
+    "dueDate": "Due Date",
+    "startDate": "Start Date",
+    "labels": "Labels",
+    "subtasks": "Subtasks",
+    "comments": "Comments",
+    "attachments": "Attachments",
+    "activity": "Activity",
+    "create": "New Task",
+    "edit": "Edit",
+    "delete": "Delete",
+    "duplicate": "Duplicate",
+    "noTasks": "No tasks yet",
+    "addComment": "Add a comment",
+    "addSubtask": "Add subtask"
+  },
+  "status": {
+    "todo": "To Do",
+    "in_progress": "In Progress",
+    "review": "Review",
+    "done": "Done"
+  },
+  "priority": {
+    "urgent": "Urgent",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
+  },
+  "workspace": {
+    "create": "Create Workspace",
+    "name": "Workspace Name",
+    "description": "Description",
+    "members": "Members",
+    "invite": "Invite",
+    "role": "Role"
+  },
+  "project": {
+    "create": "Create Project",
+    "name": "Project Name",
+    "color": "Color",
+    "icon": "Icon",
+    "archive": "Archive",
+    "delete": "Delete"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search...",
+    "filter": "Filter",
+    "sort": "Sort",
+    "loading": "Loading...",
+    "noData": "No data",
+    "confirm": "Confirm",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "all": "All",
+    "none": "None"
+  },
+  "errors": {
+    "required": "This field is required",
+    "invalidEmail": "Invalid email address",
+    "passwordShort": "Password must be at least 6 characters",
+    "generic": "Something went wrong. Please try again."
+  },
+  "success": {
+    "saved": "Saved successfully",
+    "deleted": "Deleted successfully",
+    "created": "Created successfully",
+    "updated": "Updated successfully",
+    "invited": "Invitation sent"
+  }
+}
