@@ -38,18 +38,31 @@ export default function Sidebar() {
     if (user && workspaces.length === 0) fetchWorkspaces(user.id)
   }, [user])
 
-  const { tasks, setFilters, clearFilters } = useTaskStore()
+  const { tasks, setFilters, clearFilters, filters } = useTaskStore()
   const myTaskCount = tasks.filter(t => t.assignee_id === user?.id && t.status !== 'done').length
   const overdueCount = tasks.filter(t => t.due_date && new Date(t.due_date) < new Date() && t.status !== 'done').length
 
+  const getActiveFilter = () => {
+    if (filters.assignee?.length) return 'myTasks'
+    if (filters.dateRange === 'today') return 'today'
+    if (filters.dateRange === 'overdue') return 'overdue'
+    if (filters.status?.includes('done')) return 'completed'
+    return null
+  }
+  const activeFilter = getActiveFilter()
+
   const handleSmartList = (key) => {
+    // Toggle: if already active, turn off
+    if (activeFilter === key) {
+      clearFilters()
+      return
+    }
     clearFilters()
     if (key === 'myTasks') setFilters({ assignee: [user?.id] })
     else if (key === 'today') setFilters({ dateRange: 'today' })
     else if (key === 'overdue') setFilters({ dateRange: 'overdue' })
     else if (key === 'completed') setFilters({ status: ['done'] })
 
-    // Navigate to current project or first available project
     const target = currentProject || projects[0]
     if (target) {
       setCurrentProject(target)
@@ -162,21 +175,31 @@ export default function Sidebar() {
         {/* Smart Lists */}
         <div className="px-2 mb-4">
           <p className="px-3 mb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Smart</p>
-          {smartLists.map(item => (
-            <button
-              key={item.key}
-              onClick={() => handleSmartList(item.key)}
-              className={`sidebar-item w-full ${item.danger ? 'hover:text-red-500' : ''}`}
-            >
-              <item.icon className="w-4 h-4" />
-              <span className="flex-1 text-left">{item.label}</span>
-              {item.count > 0 && (
-                <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${item.danger ? 'bg-red-100 text-red-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}>
-                  {item.count}
-                </span>
-              )}
-            </button>
-          ))}
+          {smartLists.map(item => {
+            const isActive = activeFilter === item.key
+            return (
+              <button
+                key={item.key}
+                onClick={() => handleSmartList(item.key)}
+                className={`sidebar-item w-full transition-all ${
+                  isActive
+                    ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-semibold'
+                    : item.danger ? 'hover:text-red-500' : ''
+                }`}
+              >
+                <item.icon className={`w-4 h-4 ${isActive ? 'text-indigo-500' : ''}`} />
+                <span className="flex-1 text-left">{item.label}</span>
+                {isActive && (
+                  <span className="text-xs bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-300 px-1.5 py-0.5 rounded-full">on</span>
+                )}
+                {!isActive && item.count > 0 && (
+                  <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${item.danger ? 'bg-red-100 text-red-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}>
+                    {item.count}
+                  </span>
+                )}
+              </button>
+            )
+          })}
         </div>
 
         {/* Projects */}
