@@ -57,12 +57,15 @@ export const projectService = {
   },
 
   async createProject(workspaceId, name, description, color, icon, createdBy) {
-    const { data, error } = await supabase
+    const id = crypto.randomUUID()
+    const { error } = await supabase
       .from('projects')
-      .insert({ workspace_id: workspaceId, name, description, color, icon, created_by: createdBy })
-      .select()
-      .single()
+      .insert({ id, workspace_id: workspaceId, name, description, color, icon, created_by: createdBy })
     if (error) throw error
+
+    const { data, error: selErr } = await supabase
+      .from('projects').select('*').eq('id', id).single()
+    if (selErr) throw selErr
     return data
   },
 
