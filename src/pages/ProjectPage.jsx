@@ -16,7 +16,6 @@ import MindMap from '../components/views/MindMapView/MindMap'
 import TaskModal from '../components/task/TaskModal'
 import Modal from '../components/ui/Modal'
 import TaskForm from '../components/task/TaskForm'
-import FilterBar from '../components/layout/FilterBar'
 
 const VIEW_COMPONENTS = {
   kanban: KanbanBoard,
@@ -31,32 +30,34 @@ export default function ProjectPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
   const { projects, setCurrentProject, fetchMembers, currentWorkspace } = useProjectStore()
-  const { fetchTasks } = useTaskStore()
+  const { fetchTasks, clearTasks } = useTaskStore()
   const { activeView, taskModalOpen, createTaskModal, createTaskStatus, closeCreateTaskModal } = useUIStore()
 
   useRealtime(projectId)
 
+  // Validate project belongs to current workspace
   useEffect(() => {
-    if (projects.length === 0) return
+    if (!projects.length) return
     const project = projects.find(p => p.id === projectId)
     if (project) {
       setCurrentProject(project)
     } else {
-      // Bu project cari workspace-ə aid deyil
-      useTaskStore.getState().clearTasks()
-      navigate('/dashboard')
+      clearTasks()
+      navigate('/dashboard', { replace: true })
     }
   }, [projectId, projects])
 
+  // Fetch tasks only when projectId changes (not workspace)
   useEffect(() => {
-    if (projectId && projects.find(p => p.id === projectId)) {
-      useTaskStore.getState().clearTasks()
-      fetchTasks(projectId)
-    }
-    if (currentWorkspace) {
-      fetchMembers(currentWorkspace.id)
-    }
-  }, [projectId, currentWorkspace])
+    if (!projectId) return
+    clearTasks()
+    fetchTasks(projectId)
+  }, [projectId])
+
+  // Fetch members when workspace changes
+  useEffect(() => {
+    if (currentWorkspace) fetchMembers(currentWorkspace.id)
+  }, [currentWorkspace])
 
   const ActiveView = VIEW_COMPONENTS[activeView] || KanbanBoard
 
@@ -67,18 +68,14 @@ export default function ProjectPage() {
         <Header />
         <ViewSwitcher />
         <div className="flex-1 overflow-hidden bg-gray-50 dark:bg-gray-900">
-          <ActiveView />
+          {/* key={projectId} forces full remount on project change */}
+          <ActiveView key={projectId} />
         </div>
       </div>
 
       {taskModalOpen && <TaskModal />}
 
-      <Modal
-        open={createTaskModal}
-        onClose={closeCreateTaskModal}
-        title="Yeni tapşırıq"
-        size="md"
-      >
+      <Modal open={createTaskModal} onClose={closeCreateTaskModal} title="Yeni tapşırıq" size="md">
         <TaskForm initialStatus={createTaskStatus} onClose={closeCreateTaskModal} />
       </Modal>
     </div>

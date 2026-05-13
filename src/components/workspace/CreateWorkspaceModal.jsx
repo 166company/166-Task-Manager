@@ -18,6 +18,7 @@ export default function CreateWorkspaceModal({ onClose }) {
   const [description, setDescription] = useState('')
   const [color, setColor] = useState('#4F46E5')
   const [icon, setIcon] = useState('briefcase')
+  const [iconColor, setIconColor] = useState('#FFFFFF')
   const [loading, setLoading] = useState(false)
 
   const selectedIcon = ICONS.find(i => i.iconName === icon) || ICONS[0]
@@ -27,7 +28,7 @@ export default function CreateWorkspaceModal({ onClose }) {
     if (!name.trim()) return
     setLoading(true)
     try {
-      await createWorkspace(name.trim(), description.trim(), user.id, color, icon)
+      await createWorkspace(name.trim(), description.trim(), user.id, color, icon, iconColor)
       toast.success(t('success.created'))
       onClose()
     } catch (err) {
@@ -51,7 +52,7 @@ export default function CreateWorkspaceModal({ onClose }) {
 
         <div>
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">İkon</label>
-          <IconPicker value={icon} onChange={setIcon} />
+          <IconPicker value={icon} onChange={setIcon} iconColor={iconColor} onIconColorChange={setIconColor} />
         </div>
 
         <div>
@@ -62,7 +63,7 @@ export default function CreateWorkspaceModal({ onClose }) {
         {/* Preview */}
         <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: color }}>
-            <FontAwesomeIcon icon={selectedIcon} className="text-white" style={{ width: 20, height: 20 }} />
+            <FontAwesomeIcon icon={selectedIcon} style={{ color: iconColor, width: 20, height: 20 }} />
           </div>
           <p className="font-medium text-gray-900 dark:text-white">{name || 'Workspace adı'}</p>
         </div>

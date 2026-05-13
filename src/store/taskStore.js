@@ -90,11 +90,23 @@ export const useTaskStore = create((set, get) => ({
 
   getFilteredTasks: () => {
     const { tasks, filters } = get()
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1)
+
     return tasks.filter(task => {
       if (filters.search && !task.title.toLowerCase().includes(filters.search.toLowerCase())) return false
       if (filters.status.length && !filters.status.includes(task.status)) return false
       if (filters.priority.length && !filters.priority.includes(task.priority)) return false
       if (filters.assignee.length && !filters.assignee.includes(task.assignee_id)) return false
+      if (filters.dateRange === 'today') {
+        const due = task.due_date ? new Date(task.due_date) : null
+        if (!due || due < today || due >= tomorrow) return false
+      }
+      if (filters.dateRange === 'overdue') {
+        const due = task.due_date ? new Date(task.due_date) : null
+        if (!due || due >= today || task.status === 'done') return false
+      }
       return true
     })
   },

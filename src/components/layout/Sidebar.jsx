@@ -6,6 +6,7 @@ import {
   LogOut, CheckSquare, Clock, AlertCircle, CheckCircle2,
   ChevronLeft, ChevronsUpDown, Building2, Pencil,
 } from 'lucide-react'
+import { useTaskStore } from '../../store/taskStore'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { ICONS } from '../ui/IconPicker'
 import { useAuthStore } from '../../store/authStore'
@@ -37,10 +38,23 @@ export default function Sidebar() {
     if (user && workspaces.length === 0) fetchWorkspaces(user.id)
   }, [user])
 
+  const { tasks, setFilters, clearFilters } = useTaskStore()
+  const myTaskCount = tasks.filter(t => t.assignee_id === user?.id && t.status !== 'done').length
+  const overdueCount = tasks.filter(t => t.due_date && new Date(t.due_date) < new Date() && t.status !== 'done').length
+
+  const handleSmartList = (key) => {
+    if (!currentProject) return
+    clearFilters()
+    if (key === 'myTasks') setFilters({ assignee: [user?.id] })
+    else if (key === 'today') setFilters({ dateRange: 'today' })
+    else if (key === 'overdue') setFilters({ dateRange: 'overdue' })
+    else if (key === 'completed') setFilters({ status: ['done'] })
+  }
+
   const smartLists = [
-    { key: 'myTasks', icon: CheckSquare, label: t('nav.myTasks') },
+    { key: 'myTasks', icon: CheckSquare, label: t('nav.myTasks'), count: myTaskCount },
     { key: 'today', icon: Clock, label: t('nav.today') },
-    { key: 'overdue', icon: AlertCircle, label: t('nav.overdue'), danger: true },
+    { key: 'overdue', icon: AlertCircle, label: t('nav.overdue'), danger: true, count: overdueCount },
     { key: 'completed', icon: CheckCircle2, label: t('nav.completed') },
   ]
 
@@ -69,7 +83,7 @@ export default function Sidebar() {
               className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
               style={{ backgroundColor: currentWorkspace.color || '#4F46E5' }}
             >
-              {(() => { const ic = ICONS.find(i => i.iconName === currentWorkspace.icon); return ic ? <FontAwesomeIcon icon={ic} className="text-white text-sm" /> : <span className="text-base">{currentWorkspace.icon || '🏢'}</span> })()}
+              {(() => { const ic = ICONS.find(i => i.iconName === currentWorkspace.icon); return ic ? <FontAwesomeIcon icon={ic} style={{ color: currentWorkspace.icon_color || '#FFFFFF', fontSize: 14 }} /> : <span className="text-base">{currentWorkspace.icon || '🏢'}</span> })()}
             </div>
           ) : (
             <div className="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center shrink-0">
@@ -98,7 +112,7 @@ export default function Sidebar() {
                   >
                     <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: ws.color || '#4F46E5' }}>
                       {wsIcon
-                        ? <FontAwesomeIcon icon={wsIcon} className="text-white text-xs" />
+                        ? <FontAwesomeIcon icon={wsIcon} style={{ color: ws.icon_color || '#FFFFFF', fontSize: 12 }} />
                         : <span className="text-sm">{ws.icon || '🏢'}</span>
                       }
                     </div>
@@ -143,9 +157,18 @@ export default function Sidebar() {
         <div className="px-2 mb-4">
           <p className="px-3 mb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Smart</p>
           {smartLists.map(item => (
-            <button key={item.key} className={`sidebar-item w-full ${item.danger ? 'hover:text-red-500' : ''}`}>
+            <button
+              key={item.key}
+              onClick={() => handleSmartList(item.key)}
+              className={`sidebar-item w-full ${item.danger ? 'hover:text-red-500' : ''}`}
+            >
               <item.icon className="w-4 h-4" />
-              {item.label}
+              <span className="flex-1 text-left">{item.label}</span>
+              {item.count > 0 && (
+                <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${item.danger ? 'bg-red-100 text-red-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}>
+                  {item.count}
+                </span>
+              )}
             </button>
           ))}
         </div>
