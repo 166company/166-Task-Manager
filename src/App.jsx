@@ -12,6 +12,7 @@ import ProjectPage from './pages/ProjectPage'
 import Settings from './pages/Settings'
 import Profile from './pages/Profile'
 import ChatPanel from './components/chat/ChatPanel'
+import ChatButton from './components/chat/ChatButton'
 
 export default function App() {
   const { initAuth, user } = useAuthStore()
@@ -51,6 +52,7 @@ export default function App() {
         </Route>
       </Routes>
       <ChatPanel />
+      <ChatButton />
       <Toaster
         position="bottom-right"
         toastOptions={{
