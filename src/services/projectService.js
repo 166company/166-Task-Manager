@@ -10,12 +10,12 @@ export const projectService = {
     return data.map(d => d.workspace)
   },
 
-  async createWorkspace(name, description, ownerId) {
+  async createWorkspace(name, description, ownerId, color = '#4F46E5', icon = '🏢') {
     const id = crypto.randomUUID()
 
     const { error: wsError } = await supabase
       .from('workspaces')
-      .insert({ id, name, description, owner_id: ownerId })
+      .insert({ id, name, description, owner_id: ownerId, color, icon })
     if (wsError) throw wsError
 
     const { error: memberError } = await supabase

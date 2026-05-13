@@ -24,8 +24,8 @@ export const useProjectStore = create((set, get) => ({
     get().fetchMembers(workspace.id)
   },
 
-  createWorkspace: async (name, description, ownerId) => {
-    const ws = await projectService.createWorkspace(name, description, ownerId)
+  createWorkspace: async (name, description, ownerId, color, icon) => {
+    const ws = await projectService.createWorkspace(name, description, ownerId, color, icon)
     set(state => ({ workspaces: [...state.workspaces, ws], currentWorkspace: ws }))
     return ws
   },

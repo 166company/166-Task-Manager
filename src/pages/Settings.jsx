@@ -1,29 +1,63 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import toast from 'react-hot-toast'
 import { useProjectStore } from '../store/projectStore'
+import { useAuthStore } from '../store/authStore'
 import Sidebar from '../components/layout/Sidebar'
 import Header from '../components/layout/Header'
 import MembersList from '../components/workspace/MembersList'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
-import { PROJECT_COLORS } from '../utils/constants'
+import { PROJECT_COLORS, PROJECT_ICONS } from '../utils/constants'
 
 export default function Settings() {
   const { t } = useTranslation()
-  const { currentWorkspace, updateWorkspace, currentProject, updateProject, fetchLabels, createLabel, labels } = useProjectStore()
-  const [wsName, setWsName] = useState(currentWorkspace?.name || '')
+  const { user } = useAuthStore()
+  const {
+    currentWorkspace, workspaces, fetchWorkspaces,
+    updateWorkspace, currentProject, fetchLabels,
+    createLabel, labels, fetchMembers, members,
+  } = useProjectStore()
+
+  const [wsName, setWsName] = useState('')
+  const [wsColor, setWsColor] = useState('#4F46E5')
+  const [wsIcon, setWsIcon] = useState('🏢')
   const [labelName, setLabelName] = useState('')
   const [labelColor, setLabelColor] = useState(PROJECT_COLORS[0])
   const [activeTab, setActiveTab] = useState('workspace')
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (user && workspaces.length === 0) fetchWorkspaces(user.id)
+  }, [user])
+
+  useEffect(() => {
+    if (currentWorkspace) {
+      setWsName(currentWorkspace.name || '')
+      setWsColor(currentWorkspace.color || '#4F46E5')
+      setWsIcon(currentWorkspace.icon || '🏢')
+      fetchMembers(currentWorkspace.id)
+    }
+  }, [currentWorkspace])
+
+  useEffect(() => {
+    if (currentProject) fetchLabels(currentProject.id)
+  }, [currentProject])
 
   const saveWorkspace = async () => {
     if (!currentWorkspace || !wsName.trim()) return
+    setSaving(true)
     try {
-      await updateWorkspace(currentWorkspace.id, { name: wsName })
+      await updateWorkspace(currentWorkspace.id, {
+        name: wsName.trim(),
+        color: wsColor,
+        icon: wsIcon,
+      })
       toast.success(t('success.saved'))
     } catch {
       toast.error(t('errors.generic'))
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -54,7 +88,6 @@ export default function Settings() {
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">{t('nav.settings')}</h2>
 
           <div className="flex gap-6">
-            {/* Tab nav */}
             <div className="w-48 shrink-0">
               <nav className="space-y-1">
                 {tabs.map(tab => (
@@ -71,21 +104,90 @@ export default function Settings() {
 
             <div className="flex-1 max-w-xl">
               {activeTab === 'workspace' && (
-                <div className="card p-6 space-y-4">
+                <div className="card p-6 space-y-5">
                   <h3 className="font-semibold text-gray-900 dark:text-white">Workspace parametrləri</h3>
+
+                  {!currentWorkspace && (
+                    <p className="text-sm text-amber-600 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg">
+                      Əvvəlcə sol menyudan workspace seçin və ya yaradın
+                    </p>
+                  )}
+
                   <Input
                     label="Workspace adı"
                     value={wsName}
                     onChange={e => setWsName(e.target.value)}
+                    placeholder="Komanda adı..."
+                    disabled={!currentWorkspace}
                   />
-                  <Button onClick={saveWorkspace}>{t('common.save')}</Button>
+
+                  {/* Icon seçimi */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">İkon</label>
+                    <div className="flex flex-wrap gap-2">
+                      {PROJECT_ICONS.map(icon => (
+                        <button
+                          key={icon}
+                          type="button"
+                          onClick={() => setWsIcon(icon)}
+                          disabled={!currentWorkspace}
+                          className={`w-9 h-9 rounded-lg text-lg flex items-center justify-center transition-all ${
+                            wsIcon === icon
+                              ? 'ring-2 ring-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                              : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                          }`}
+                        >
+                          {icon}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Rəng seçimi */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">Rəng</label>
+                    <div className="flex flex-wrap gap-2">
+                      {PROJECT_COLORS.map(color => (
+                        <button
+                          key={color}
+                          type="button"
+                          onClick={() => setWsColor(color)}
+                          disabled={!currentWorkspace}
+                          className={`w-7 h-7 rounded-full transition-all ${
+                            wsColor === color ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : 'hover:scale-105'
+                          }`}
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Preview */}
+                  {currentWorkspace && (
+                    <div className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ backgroundColor: wsColor }}>
+                        {wsIcon}
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">{wsName || 'Workspace adı'}</p>
+                        <p className="text-xs text-gray-400">Önizləmə</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <Button onClick={saveWorkspace} loading={saving} disabled={!currentWorkspace}>
+                    {t('common.save')}
+                  </Button>
                 </div>
               )}
 
               {activeTab === 'members' && (
                 <div className="card p-6">
                   <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{t('workspace.members')}</h3>
-                  <MembersList />
+                  {currentWorkspace
+                    ? <MembersList />
+                    : <p className="text-sm text-gray-400">Əvvəlcə workspace seçin</p>
+                  }
                 </div>
               )}
 
@@ -102,13 +204,13 @@ export default function Settings() {
                           placeholder="Yeni etiket..."
                           className="flex-1"
                         />
-                        <div className="flex gap-1 mb-0.5">
-                          {PROJECT_COLORS.slice(0, 5).map(c => (
+                        <div className="flex gap-1 pb-0.5">
+                          {PROJECT_COLORS.slice(0, 8).map(c => (
                             <button
                               type="button"
                               key={c}
                               onClick={() => setLabelColor(c)}
-                              className={`w-6 h-6 rounded-full ${labelColor === c ? 'ring-2 ring-offset-1 ring-gray-400' : ''}`}
+                              className={`w-6 h-6 rounded-full transition-all ${labelColor === c ? 'ring-2 ring-offset-1 ring-gray-400 scale-110' : ''}`}
                               style={{ backgroundColor: c }}
                             />
                           ))}
@@ -122,6 +224,7 @@ export default function Settings() {
                             {l.name}
                           </span>
                         ))}
+                        {labels.length === 0 && <p className="text-sm text-gray-400">Hələ etiket yoxdur</p>}
                       </div>
                     </>
                   ) : (
