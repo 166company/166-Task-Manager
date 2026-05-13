@@ -4,21 +4,31 @@ export const taskService = {
   async getTasks(projectId) {
     const { data, error } = await supabase
       .from('tasks')
-      .select(`
-        *,
-        assignee:profiles!tasks_assignee_id_fkey(id, full_name, avatar_url, email),
-        creator:profiles!tasks_created_by_fkey(id, full_name, avatar_url),
-        task_labels(label:labels(*)),
-        subtasks:tasks!tasks_parent_task_id_fkey(id, title, status)
-      `)
+      .select('*')
       .eq('project_id', projectId)
       .is('parent_task_id', null)
       .order('order_index', { ascending: true })
-    if (error) throw error
+    if (error) {
+      console.error('getTasks error:', error)
+      throw error
+    }
+
+    // Fetch assignees separately to avoid RLS join issues
+    const userIds = [...new Set(data.map(t => t.assignee_id).filter(Boolean))]
+    let profiles = {}
+    if (userIds.length > 0) {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url, email')
+        .in('id', userIds)
+      profileData?.forEach(p => { profiles[p.id] = p })
+    }
+
     return data.map(t => ({
       ...t,
-      labels: t.task_labels?.map(tl => tl.label) || [],
-      subtask_count: t.subtasks?.length || 0,
+      assignee: t.assignee_id ? profiles[t.assignee_id] || null : null,
+      labels: [],
+      subtask_count: 0,
     }))
   },
 

@@ -21,15 +21,10 @@ export const useTaskStore = create((set, get) => ({
     set({ loading: true, currentProjectId: projectId })
     try {
       const tasks = await taskService.getTasks(projectId)
-      // Only update if this is still the active project
-      if (get().currentProjectId === projectId) {
-        set({ tasks, loading: false })
-      }
+      set({ tasks, loading: false, currentProjectId: projectId })
     } catch (err) {
       console.error('fetchTasks error:', err)
-      if (get().currentProjectId === projectId) {
-        set({ loading: false })
-      }
+      set({ loading: false })
     }
   },
 
