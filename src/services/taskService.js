@@ -51,16 +51,18 @@ export const taskService = {
   },
 
   async createTask(taskData) {
-    const { data, error } = await supabase
+    const id = crypto.randomUUID()
+    const { error } = await supabase
       .from('tasks')
-      .insert(taskData)
-      .select(`
-        *,
-        assignee:profiles!tasks_assignee_id_fkey(id, full_name, avatar_url, email),
-        task_labels(label:labels(*))
-      `)
-      .single()
+      .insert({ ...taskData, id })
     if (error) throw error
+
+    const { data, error: selErr } = await supabase
+      .from('tasks')
+      .select('*, assignee:profiles!tasks_assignee_id_fkey(id, full_name, avatar_url, email)')
+      .eq('id', id)
+      .single()
+    if (selErr) throw selErr
     return { ...data, labels: [] }
   },
 

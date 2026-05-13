@@ -44,9 +44,13 @@ export const useTaskStore = create(
 
       createTask: async (taskData) => {
         const task = await taskService.createTask(taskData)
-        // Only add to store if it belongs to current project
+        // Always add to store if it belongs to current project
         if (task.project_id === get().currentProjectId) {
-          set(state => ({ tasks: [...state.tasks, task] }))
+          set(state => ({
+            tasks: state.tasks.find(t => t.id === task.id)
+              ? state.tasks
+              : [...state.tasks, task]
+          }))
         }
         return task
       },

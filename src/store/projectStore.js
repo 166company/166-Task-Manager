@@ -22,6 +22,7 @@ export const useProjectStore = create((set, get) => ({
   },
 
   setCurrentWorkspace: (workspace) => {
+    // Don't clear tasks here — ProjectPage handles it when projectId changes
     set({ currentWorkspace: workspace, currentProject: null, projects: [] })
     get().fetchProjects(workspace.id)
     get().fetchMembers(workspace.id)
