@@ -13,7 +13,10 @@ export const useProjectStore = create((set, get) => ({
   fetchWorkspaces: async (userId) => {
     set({ loading: true })
     const workspaces = await projectService.getWorkspaces(userId)
-    const current = workspaces[0] || null
+    const existing = get().currentWorkspace
+    const current = existing && workspaces.find(w => w.id === existing.id)
+      ? existing
+      : workspaces[0] || null
     set({ workspaces, currentWorkspace: current, loading: false })
     if (current) get().fetchProjects(current.id)
   },

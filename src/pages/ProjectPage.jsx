@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useProjectStore } from '../store/projectStore'
 import { useTaskStore } from '../store/taskStore'
 import { useUIStore } from '../store/uiStore'
@@ -29,6 +29,7 @@ const VIEW_COMPONENTS = {
 
 export default function ProjectPage() {
   const { projectId } = useParams()
+  const navigate = useNavigate()
   const { projects, setCurrentProject, fetchMembers, currentWorkspace } = useProjectStore()
   const { fetchTasks } = useTaskStore()
   const { activeView, taskModalOpen, createTaskModal, createTaskStatus, closeCreateTaskModal } = useUIStore()
@@ -36,12 +37,19 @@ export default function ProjectPage() {
   useRealtime(projectId)
 
   useEffect(() => {
+    if (projects.length === 0) return
     const project = projects.find(p => p.id === projectId)
-    if (project) setCurrentProject(project)
+    if (project) {
+      setCurrentProject(project)
+    } else {
+      // Bu project cari workspace-ə aid deyil
+      useTaskStore.getState().clearTasks()
+      navigate('/dashboard')
+    }
   }, [projectId, projects])
 
   useEffect(() => {
-    if (projectId) {
+    if (projectId && projects.find(p => p.id === projectId)) {
       useTaskStore.getState().clearTasks()
       fetchTasks(projectId)
     }
