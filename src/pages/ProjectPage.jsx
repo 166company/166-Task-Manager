@@ -47,9 +47,14 @@ export default function ProjectPage() {
     }
   }, [projectId, projects])
 
-  // Fetch tasks when projectId changes - always from DB
+  // Fetch tasks when projectId changes
   useEffect(() => {
     if (!projectId) return
+    const store = useTaskStore.getState()
+    // Clear only when switching to a genuinely different project
+    if (store.currentProjectId && store.currentProjectId !== projectId) {
+      store.clearTasks()
+    }
     fetchTasks(projectId)
   }, [projectId])
 

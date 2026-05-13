@@ -18,15 +18,10 @@ export const useTaskStore = create((set, get) => ({
   clearTasks: () => set({ tasks: [], selectedTask: null, currentProjectId: null }),
 
   fetchTasks: async (projectId) => {
-    // Immediately clear tasks when switching to different project
-    const prev = get().currentProjectId
-    if (prev !== projectId) {
-      set({ tasks: [], loading: true, currentProjectId: projectId })
-    } else {
-      set({ loading: true, currentProjectId: projectId })
-    }
+    set({ loading: true, currentProjectId: projectId })
     try {
       const tasks = await taskService.getTasks(projectId)
+      // Only update if this is still the active project
       if (get().currentProjectId === projectId) {
         set({ tasks, loading: false })
       }
