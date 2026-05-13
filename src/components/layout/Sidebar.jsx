@@ -93,7 +93,7 @@ export default function Sidebar() {
               return (
                 <div key={ws.id} className={`flex items-center group ${currentWorkspace?.id === ws.id ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}`}>
                   <button
-                    onClick={() => { setCurrentWorkspace(ws); setWsMenuOpen(false) }}
+                    onClick={() => { setCurrentWorkspace(ws); setWsMenuOpen(false); navigate('/dashboard') }}
                     className="flex-1 flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
                     <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: ws.color || '#4F46E5' }}>

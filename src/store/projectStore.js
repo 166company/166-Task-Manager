@@ -19,7 +19,7 @@ export const useProjectStore = create((set, get) => ({
   },
 
   setCurrentWorkspace: (workspace) => {
-    set({ currentWorkspace: workspace, currentProject: null })
+    set({ currentWorkspace: workspace, currentProject: null, projects: [] })
     get().fetchProjects(workspace.id)
     get().fetchMembers(workspace.id)
   },

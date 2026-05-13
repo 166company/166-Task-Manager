@@ -14,8 +14,10 @@ export const useTaskStore = create((set, get) => ({
     dateRange: null,
   },
 
+  clearTasks: () => set({ tasks: [], selectedTask: null }),
+
   fetchTasks: async (projectId) => {
-    set({ loading: true })
+    set({ loading: true, tasks: [] })
     const tasks = await taskService.getTasks(projectId)
     set({ tasks, loading: false })
   },

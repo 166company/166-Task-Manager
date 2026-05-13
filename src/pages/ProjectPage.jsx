@@ -42,6 +42,7 @@ export default function ProjectPage() {
 
   useEffect(() => {
     if (projectId) {
+      useTaskStore.getState().clearTasks()
       fetchTasks(projectId)
     }
     if (currentWorkspace) {
