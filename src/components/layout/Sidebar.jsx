@@ -4,13 +4,16 @@ import { useTranslation } from 'react-i18next'
 import {
   LayoutDashboard, ChevronDown, ChevronRight, Plus, Settings,
   LogOut, CheckSquare, Clock, AlertCircle, CheckCircle2,
-  ChevronLeft, ChevronsUpDown, Building2,
+  ChevronLeft, ChevronsUpDown, Building2, Pencil,
 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { ICONS } from '../ui/IconPicker'
 import { useAuthStore } from '../../store/authStore'
 import { useProjectStore } from '../../store/projectStore'
 import { useUIStore } from '../../store/uiStore'
 import Avatar from '../ui/Avatar'
 import CreateWorkspaceModal from '../workspace/CreateWorkspaceModal'
+import EditWorkspaceModal from '../workspace/EditWorkspaceModal'
 import CreateProjectModal from '../workspace/CreateProjectModal'
 
 export default function Sidebar() {
@@ -27,6 +30,7 @@ export default function Sidebar() {
   const [projectsOpen, setProjectsOpen] = useState(true)
   const [wsMenuOpen, setWsMenuOpen] = useState(false)
   const [showCreateWs, setShowCreateWs] = useState(false)
+  const [showEditWs, setShowEditWs] = useState(false)
   const [showCreateProject, setShowCreateProject] = useState(false)
 
   useEffect(() => {
@@ -62,10 +66,10 @@ export default function Sidebar() {
         >
           {currentWorkspace ? (
             <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-base shrink-0"
+              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
               style={{ backgroundColor: currentWorkspace.color || '#4F46E5' }}
             >
-              {currentWorkspace.icon || '🏢'}
+              {(() => { const ic = ICONS.find(i => i.iconName === currentWorkspace.icon); return ic ? <FontAwesomeIcon icon={ic} className="text-white text-sm" /> : <span className="text-base">{currentWorkspace.icon || '🏢'}</span> })()}
             </div>
           ) : (
             <div className="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center shrink-0">
@@ -84,24 +88,32 @@ export default function Sidebar() {
         {/* Workspace dropdown */}
         {wsMenuOpen && (
           <div className="absolute top-full left-0 right-0 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl rounded-b-xl overflow-hidden">
-            {workspaces.map(ws => (
-              <button
-                key={ws.id}
-                onClick={() => { setCurrentWorkspace(ws); setWsMenuOpen(false) }}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${currentWorkspace?.id === ws.id ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}`}
-              >
-                <div
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-sm shrink-0"
-                  style={{ backgroundColor: ws.color || '#4F46E5' }}
-                >
-                  {ws.icon || '🏢'}
+            {workspaces.map(ws => {
+              const wsIcon = ICONS.find(i => i.iconName === ws.icon)
+              return (
+                <div key={ws.id} className={`flex items-center group ${currentWorkspace?.id === ws.id ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}`}>
+                  <button
+                    onClick={() => { setCurrentWorkspace(ws); setWsMenuOpen(false) }}
+                    className="flex-1 flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: ws.color || '#4F46E5' }}>
+                      {wsIcon
+                        ? <FontAwesomeIcon icon={wsIcon} className="text-white text-xs" />
+                        : <span className="text-sm">{ws.icon || '🏢'}</span>
+                      }
+                    </div>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white truncate">{ws.name}</span>
+                    {currentWorkspace?.id === ws.id && <CheckCircle2 className="w-4 h-4 text-indigo-500 shrink-0 ml-auto" />}
+                  </button>
+                  <button
+                    onClick={() => { setCurrentWorkspace(ws); setShowEditWs(true); setWsMenuOpen(false) }}
+                    className="px-2 py-2.5 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600 transition-all"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
                 </div>
-                <span className="text-sm font-medium text-gray-900 dark:text-white truncate">{ws.name}</span>
-                {currentWorkspace?.id === ws.id && (
-                  <CheckCircle2 className="w-4 h-4 text-indigo-500 shrink-0 ml-auto" />
-                )}
-              </button>
-            ))}
+              )
+            })}
             <div className="border-t border-gray-100 dark:border-gray-700">
               <button
                 onClick={() => { setShowCreateWs(true); setWsMenuOpen(false) }}
@@ -217,6 +229,7 @@ export default function Sidebar() {
       </div>
 
       {showCreateWs && <CreateWorkspaceModal onClose={() => setShowCreateWs(false)} />}
+      {showEditWs && currentWorkspace && <EditWorkspaceModal workspace={currentWorkspace} onClose={() => setShowEditWs(false)} />}
       {showCreateProject && currentWorkspace && <CreateProjectModal onClose={() => setShowCreateProject(false)} />}
     </div>
   )
