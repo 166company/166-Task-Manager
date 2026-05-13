@@ -43,12 +43,18 @@ export default function Sidebar() {
   const overdueCount = tasks.filter(t => t.due_date && new Date(t.due_date) < new Date() && t.status !== 'done').length
 
   const handleSmartList = (key) => {
-    if (!currentProject) return
     clearFilters()
     if (key === 'myTasks') setFilters({ assignee: [user?.id] })
     else if (key === 'today') setFilters({ dateRange: 'today' })
     else if (key === 'overdue') setFilters({ dateRange: 'overdue' })
     else if (key === 'completed') setFilters({ status: ['done'] })
+
+    // Navigate to current project or first available project
+    const target = currentProject || projects[0]
+    if (target) {
+      setCurrentProject(target)
+      navigate(`/project/${target.id}`)
+    }
   }
 
   const smartLists = [
