@@ -25,24 +25,28 @@ export const taskService = {
   async getTask(id) {
     const { data, error } = await supabase
       .from('tasks')
-      .select(`
-        *,
-        assignee:profiles!tasks_assignee_id_fkey(id, full_name, avatar_url, email),
-        creator:profiles!tasks_created_by_fkey(id, full_name, avatar_url),
-        task_labels(label:labels(*)),
-        subtasks:tasks!tasks_parent_task_id_fkey(*,
-          assignee:profiles!tasks_assignee_id_fkey(id, full_name, avatar_url)
-        ),
-        comments(*, user:profiles(id, full_name, avatar_url)),
-        attachments(*),
-        activities(*, user:profiles(id, full_name, avatar_url))
-      `)
+      .select(`*, assignee:profiles!tasks_assignee_id_fkey(id, full_name, avatar_url, email), creator:profiles!tasks_created_by_fkey(id, full_name, avatar_url), task_labels(label:labels(*))`)
       .eq('id', id)
       .single()
     if (error) throw error
+
+    const [subtasksRes, commentsRes, attachmentsRes] = await Promise.all([
+      supabase.from('tasks')
+        .select('*, assignee:profiles!tasks_assignee_id_fkey(id, full_name, avatar_url)')
+        .eq('parent_task_id', id).order('order_index'),
+      supabase.from('comments')
+        .select('*, user:profiles(id, full_name, avatar_url)')
+        .eq('task_id', id).order('created_at'),
+      supabase.from('attachments').select('*').eq('task_id', id),
+    ])
+
     return {
       ...data,
-      labels: data.task_labels?.map(tl => tl.label) || [],
+      labels: data.task_labels?.map(tl => tl.label).filter(Boolean) || [],
+      subtasks: subtasksRes.data || [],
+      comments: commentsRes.data || [],
+      attachments: attachmentsRes.data || [],
+      activities: [],
     }
   },
 
