@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { Github } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
@@ -10,6 +10,7 @@ import Button from '../ui/Button'
 export default function LoginForm() {
   const { t } = useTranslation()
   const { signIn, signInWithGoogle, signInWithGitHub } = useAuthStore()
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -19,6 +20,7 @@ export default function LoginForm() {
     setLoading(true)
     try {
       await signIn(email, password)
+      navigate('/dashboard')
     } catch (err) {
       toast.error(err.message || t('errors.generic'))
     } finally {
