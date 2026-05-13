@@ -20,6 +20,8 @@ export default function App() {
   const { initDMSubscription, loadUnreadCounts } = useChatStore()
 
   useEffect(() => {
+    // Clear old task localStorage cache if exists
+    localStorage.removeItem('166-tasks-cache')
     initAuth()
   }, [initAuth])
 
