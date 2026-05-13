@@ -32,7 +32,7 @@ export default function MembersList() {
 
   const memberUserIds = members.map(m => m.user_id)
   const myMember = members.find(m => m.user_id === user?.id)
-  const isAdmin = myMember?.role === 'admin'
+  const isAdmin = myMember?.role === 'admin' || currentWorkspace?.owner_id === user?.id
 
   const filteredUsers = allUsers.filter(u =>
     !memberUserIds.includes(u.id) &&

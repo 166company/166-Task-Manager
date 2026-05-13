@@ -14,12 +14,23 @@ export const useTaskStore = create((set, get) => ({
     dateRange: null,
   },
 
-  clearTasks: () => set({ tasks: [], selectedTask: null }),
+  currentProjectId: null,
+
+  clearTasks: () => set({ tasks: [], selectedTask: null, currentProjectId: null }),
 
   fetchTasks: async (projectId) => {
-    set({ loading: true, tasks: [] })
-    const tasks = await taskService.getTasks(projectId)
-    set({ tasks, loading: false })
+    set({ loading: true, currentProjectId: projectId })
+    try {
+      const tasks = await taskService.getTasks(projectId)
+      // Only update if this projectId is still active (prevents race condition)
+      if (get().currentProjectId === projectId) {
+        set({ tasks, loading: false })
+      }
+    } catch (err) {
+      if (get().currentProjectId === projectId) {
+        set({ loading: false })
+      }
+    }
   },
 
   fetchTask: async (id) => {

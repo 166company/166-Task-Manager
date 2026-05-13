@@ -92,11 +92,16 @@ export default function Header() {
 
         <button
           onClick={toggleChat}
-          className={`p-2 rounded-lg transition-colors relative ${chatOpen ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500'}`}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all relative font-medium text-sm ${
+            chatOpen
+              ? 'bg-indigo-600 text-white shadow-md'
+              : 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 hover:bg-indigo-100 dark:hover:bg-indigo-900/30'
+          }`}
         >
           <MessageSquare className="w-4 h-4" />
+          <span>Chat</span>
           {totalUnread > 0 && (
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+            <span className="w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
               {totalUnread > 9 ? '9+' : totalUnread}
             </span>
           )}

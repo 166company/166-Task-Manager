@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import toast from 'react-hot-toast'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useProjectStore } from '../store/projectStore'
 import { useAuthStore } from '../store/authStore'
 import Sidebar from '../components/layout/Sidebar'
@@ -8,7 +9,9 @@ import Header from '../components/layout/Header'
 import MembersList from '../components/workspace/MembersList'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
-import { PROJECT_COLORS, PROJECT_ICONS } from '../utils/constants'
+import IconPicker, { ICONS } from '../components/ui/IconPicker'
+import ColorPicker from '../components/ui/ColorPicker'
+import { PROJECT_COLORS } from '../utils/constants'
 
 export default function Settings() {
   const { t } = useTranslation()
@@ -21,7 +24,8 @@ export default function Settings() {
 
   const [wsName, setWsName] = useState('')
   const [wsColor, setWsColor] = useState('#4F46E5')
-  const [wsIcon, setWsIcon] = useState('🏢')
+  const [wsIcon, setWsIcon] = useState('briefcase')
+  const [wsIconColor, setWsIconColor] = useState('#FFFFFF')
   const [labelName, setLabelName] = useState('')
   const [labelColor, setLabelColor] = useState(PROJECT_COLORS[0])
   const [activeTab, setActiveTab] = useState('workspace')
@@ -35,7 +39,8 @@ export default function Settings() {
     if (currentWorkspace) {
       setWsName(currentWorkspace.name || '')
       setWsColor(currentWorkspace.color || '#4F46E5')
-      setWsIcon(currentWorkspace.icon || '🏢')
+      setWsIcon(currentWorkspace.icon || 'briefcase')
+      setWsIconColor(currentWorkspace.icon_color || '#FFFFFF')
       fetchMembers(currentWorkspace.id)
     }
   }, [currentWorkspace])
@@ -52,6 +57,7 @@ export default function Settings() {
         name: wsName.trim(),
         color: wsColor,
         icon: wsIcon,
+        icon_color: wsIconColor,
       })
       toast.success(t('success.saved'))
     } catch {
@@ -121,52 +127,23 @@ export default function Settings() {
                     disabled={!currentWorkspace}
                   />
 
-                  {/* Icon seçimi */}
+                  {/* Icon picker */}
                   <div>
                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">İkon</label>
-                    <div className="flex flex-wrap gap-2">
-                      {PROJECT_ICONS.map(icon => (
-                        <button
-                          key={icon}
-                          type="button"
-                          onClick={() => setWsIcon(icon)}
-                          disabled={!currentWorkspace}
-                          className={`w-9 h-9 rounded-lg text-lg flex items-center justify-center transition-all ${
-                            wsIcon === icon
-                              ? 'ring-2 ring-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                              : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                          }`}
-                        >
-                          {icon}
-                        </button>
-                      ))}
-                    </div>
+                    <IconPicker value={wsIcon} onChange={setWsIcon} iconColor={wsIconColor} onIconColorChange={setWsIconColor} />
                   </div>
 
-                  {/* Rəng seçimi */}
+                  {/* Color picker */}
                   <div>
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">Rəng</label>
-                    <div className="flex flex-wrap gap-2">
-                      {PROJECT_COLORS.map(color => (
-                        <button
-                          key={color}
-                          type="button"
-                          onClick={() => setWsColor(color)}
-                          disabled={!currentWorkspace}
-                          className={`w-7 h-7 rounded-full transition-all ${
-                            wsColor === color ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : 'hover:scale-105'
-                          }`}
-                          style={{ backgroundColor: color }}
-                        />
-                      ))}
-                    </div>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">Fon rəngi</label>
+                    <ColorPicker value={wsColor} onChange={setWsColor} />
                   </div>
 
                   {/* Preview */}
                   {currentWorkspace && (
                     <div className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ backgroundColor: wsColor }}>
-                        {wsIcon}
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: wsColor }}>
+                        {(() => { const ic = ICONS.find(i => i.iconName === wsIcon); return ic ? <FontAwesomeIcon icon={ic} style={{ color: wsIconColor, width: 20, height: 20 }} /> : <span className="text-xl">{wsIcon}</span> })()}
                       </div>
                       <div>
                         <p className="font-medium text-gray-900 dark:text-white">{wsName || 'Workspace adı'}</p>
