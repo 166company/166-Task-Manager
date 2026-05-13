@@ -11,19 +11,22 @@ export const projectService = {
   },
 
   async createWorkspace(name, description, ownerId) {
-    const { data: ws, error: wsError } = await supabase
+    const id = crypto.randomUUID()
+
+    const { error: wsError } = await supabase
       .from('workspaces')
-      .insert({ name, description, owner_id: ownerId })
-      .select()
-      .single()
+      .insert({ id, name, description, owner_id: ownerId })
     if (wsError) throw wsError
 
-    await supabase.from('workspace_members').insert({
-      workspace_id: ws.id,
-      user_id: ownerId,
-      role: 'admin',
-    })
-    return ws
+    const { error: memberError } = await supabase
+      .from('workspace_members')
+      .insert({ workspace_id: id, user_id: ownerId, role: 'admin' })
+    if (memberError) throw memberError
+
+    const { data, error } = await supabase
+      .from('workspaces').select('*').eq('id', id).single()
+    if (error) throw error
+    return data
   },
 
   async updateWorkspace(id, updates) {
@@ -88,17 +91,19 @@ export const projectService = {
     return data
   },
 
-  async inviteMember(workspaceId, email, role = 'member') {
-    const { data: profile } = await supabase
+  async getAllProfiles() {
+    const { data, error } = await supabase
       .from('profiles')
-      .select('id')
-      .eq('email', email)
-      .single()
-    if (!profile) throw new Error('User not found')
+      .select('id, full_name, email, avatar_url')
+      .order('full_name')
+    if (error) throw error
+    return data || []
+  },
 
+  async inviteMember(workspaceId, userId, role = 'member') {
     const { data, error } = await supabase
       .from('workspace_members')
-      .insert({ workspace_id: workspaceId, user_id: profile.id, role })
+      .insert({ workspace_id: workspaceId, user_id: userId, role })
       .select()
       .single()
     if (error) throw error
