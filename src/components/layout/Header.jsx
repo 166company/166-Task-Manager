@@ -1,12 +1,13 @@
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Search, Bell, Sun, Moon, Globe, Plus } from 'lucide-react'
+import { Search, Bell, Sun, Moon, Plus, MessageSquare } from 'lucide-react'
 import { useUIStore } from '../../store/uiStore'
 import { useProjectStore } from '../../store/projectStore'
 import { useTaskStore } from '../../store/taskStore'
 import { useTheme } from '../../hooks/useTheme'
 import Avatar from '../ui/Avatar'
 import { useAuthStore } from '../../store/authStore'
+import { useChatStore } from '../../store/chatStore'
 
 export default function Header() {
   const { t, i18n } = useTranslation()
@@ -15,6 +16,8 @@ export default function Header() {
   const { currentProject } = useProjectStore()
   const { setFilters } = useTaskStore()
   const { profile, user } = useAuthStore()
+  const { toggleChat, open: chatOpen, unreadCounts } = useChatStore()
+  const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchVal, setSearchVal] = useState('')
 
@@ -85,6 +88,18 @@ export default function Header() {
 
         <button onClick={toggleTheme} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500">
           {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+        </button>
+
+        <button
+          onClick={toggleChat}
+          className={`p-2 rounded-lg transition-colors relative ${chatOpen ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500'}`}
+        >
+          <MessageSquare className="w-4 h-4" />
+          {totalUnread > 0 && (
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+              {totalUnread > 9 ? '9+' : totalUnread}
+            </span>
+          )}
         </button>
 
         <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 relative">

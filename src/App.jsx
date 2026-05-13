@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { useAuthStore } from './store/authStore'
 import { useTheme } from './hooks/useTheme'
+import { useChatStore } from './store/chatStore'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -10,14 +11,23 @@ import Dashboard from './pages/Dashboard'
 import ProjectPage from './pages/ProjectPage'
 import Settings from './pages/Settings'
 import Profile from './pages/Profile'
+import ChatPanel from './components/chat/ChatPanel'
 
 export default function App() {
-  const { initAuth } = useAuthStore()
+  const { initAuth, user } = useAuthStore()
   const { theme } = useTheme()
+  const { initDMSubscription, loadUnreadCounts } = useChatStore()
 
   useEffect(() => {
     initAuth()
   }, [initAuth])
+
+  useEffect(() => {
+    if (user) {
+      initDMSubscription(user.id)
+      loadUnreadCounts(user.id)
+    }
+  }, [user?.id])
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -40,6 +50,7 @@ export default function App() {
           <Route path="/profile" element={<Profile />} />
         </Route>
       </Routes>
+      <ChatPanel />
       <Toaster
         position="bottom-right"
         toastOptions={{
