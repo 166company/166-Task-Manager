@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import toast from 'react-hot-toast'
-import { Trash2, Calendar, User, Flag, MessageSquare, Paperclip, CheckSquare, Loader2, X } from 'lucide-react'
+import { Trash2, Calendar, User, Flag, MessageSquare, Paperclip, CheckSquare, Loader2, X, FolderOpen, Building2 } from 'lucide-react'
 import { useUIStore } from '../../store/uiStore'
 import { useTaskStore } from '../../store/taskStore'
 import { useProjectStore } from '../../store/projectStore'
 import { useAuthStore } from '../../store/authStore'
+import { projectService } from '../../services/projectService'
 import Modal from '../ui/Modal'
 import { StatusBadge, PriorityBadge } from '../ui/Badge'
 import Avatar from '../ui/Avatar'
@@ -55,22 +56,30 @@ export default function TaskModal() {
   const { t } = useTranslation()
   const { taskModalOpen, taskModalId, closeTaskModal } = useUIStore()
   const { fetchTask, updateTask, deleteTask } = useTaskStore()
-  const { members, labels } = useProjectStore()
+  const { members, labels, workspaces, projects: currentProjects } = useProjectStore()
   const { user } = useAuthStore()
   const [tab, setTab] = useState('description')
   const [task, setTask] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [allProjects, setAllProjects] = useState([])
+  const [editingProject, setEditingProject] = useState(false)
+  const [newProjectId, setNewProjectId] = useState('')
 
   useEffect(() => {
     if (taskModalOpen && taskModalId) {
       setLoading(true)
       setError(null)
       setTask(null)
+      setEditingProject(false)
       fetchTask(taskModalId)
-        .then(t => setTask(t))
+        .then(t => { setTask(t); setNewProjectId(t.project_id) })
         .catch(err => setError(err.message || 'Tapşırıq yüklənmədi'))
         .finally(() => setLoading(false))
+      // Load all projects for editing
+      Promise.all(workspaces.map(w => projectService.getProjects(w.id)))
+        .then(results => setAllProjects(results.flat()))
+        .catch(() => {})
     } else {
       setTask(null)
       setError(null)
@@ -192,6 +201,52 @@ export default function TaskModal() {
           {/* Right Sidebar */}
           <div className="w-72 border-l border-gray-100 dark:border-gray-700 overflow-y-auto scrollbar-thin shrink-0 bg-gray-50/50 dark:bg-gray-800/30">
             <div className="p-4 space-y-5">
+
+              {/* Workspace + Project */}
+              <div className="pb-3 border-b border-gray-100 dark:border-gray-700">
+                {(() => {
+                  const proj = allProjects.find(p => p.id === task.project_id) || currentProjects.find(p => p.id === task.project_id)
+                  const ws = workspaces.find(w => w.id === proj?.workspace_id)
+                  return (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <Building2 className="w-3.5 h-3.5 shrink-0" />
+                        <span className="font-medium">{ws?.name || 'Workspace'}</span>
+                      </div>
+                      {editingProject ? (
+                        <div className="flex gap-1">
+                          <select
+                            value={newProjectId}
+                            onChange={e => setNewProjectId(e.target.value)}
+                            className="input text-xs flex-1"
+                          >
+                            {allProjects.map(p => (
+                              <option key={p.id} value={p.id}>{p.icon} {p.name}</option>
+                            ))}
+                          </select>
+                          <button
+                            onClick={async () => {
+                              await update('project_id', newProjectId)
+                              setEditingProject(false)
+                            }}
+                            className="px-2 py-1 bg-indigo-600 text-white text-xs rounded-lg"
+                          >✓</button>
+                          <button onClick={() => setEditingProject(false)} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-xs rounded-lg">✕</button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setEditingProject(true)}
+                          className="flex items-center gap-2 w-full text-left px-2 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
+                        >
+                          <FolderOpen className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-200 flex-1">{proj?.icon} {proj?.name || 'Layihə'}</span>
+                          <span className="text-xs text-gray-400 opacity-0 group-hover:opacity-100">dəyiş</span>
+                        </button>
+                      )}
+                    </div>
+                  )
+                })()}
+              </div>
 
               {/* Status */}
               <div>
