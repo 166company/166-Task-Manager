@@ -255,22 +255,13 @@ export default function Attachments({ taskId, attachments = [], onAttachmentAdde
         </div>
       )}
 
-      {/* Action buttons */}
+      {/* Action buttons - links only (no storage cost) */}
       {!linkMode && (
-        <div className="flex items-center gap-3">
-          <input ref={inputRef} type="file" className="hidden" onChange={handleUpload} />
-          <button onClick={() => inputRef.current?.click()} disabled={uploading}
-            className="flex items-center gap-2 text-sm text-gray-400 hover:text-indigo-600 transition-colors disabled:opacity-50">
-            <Upload className="w-4 h-4" />
-            {uploading ? 'Yüklənir...' : 'Fayl yüklə'}
-          </button>
-          <span className="text-gray-200 dark:text-gray-600">|</span>
-          <button onClick={() => setLinkMode(true)}
-            className="flex items-center gap-2 text-sm text-gray-400 hover:text-indigo-600 transition-colors">
-            <Link className="w-4 h-4" />
-            Link əlavə et
-          </button>
-        </div>
+        <button onClick={() => setLinkMode(true)}
+          className="flex items-center gap-2 text-sm text-gray-400 hover:text-indigo-600 transition-colors">
+          <Link className="w-4 h-4" />
+          Link əlavə et (Google Drive, Mega, YouTube...)
+        </button>
       )}
     </div>
   )

@@ -1,8 +1,7 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import toast from 'react-hot-toast'
-import { Camera } from 'lucide-react'
-import { supabase } from '../services/supabase'
+import { Link2 } from 'lucide-react'
 import { useAuthStore } from '../store/authStore'
 import Sidebar from '../components/layout/Sidebar'
 import Header from '../components/layout/Header'
@@ -14,15 +13,15 @@ export default function Profile() {
   const { t } = useTranslation()
   const { user, profile, updateProfile } = useAuthStore()
   const [fullName, setFullName] = useState(profile?.full_name || '')
+  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '')
   const [saving, setSaving] = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const fileRef = useRef(null)
+  const [avatarMode, setAvatarMode] = useState(false)
 
   const handleSave = async (e) => {
     e.preventDefault()
     setSaving(true)
     try {
-      await updateProfile({ full_name: fullName })
+      await updateProfile({ full_name: fullName, avatar_url: avatarUrl || null })
       toast.success(t('success.saved'))
     } catch {
       toast.error(t('errors.generic'))
@@ -31,24 +30,7 @@ export default function Profile() {
     }
   }
 
-  const handleAvatarUpload = async (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setUploading(true)
-    try {
-      const path = `avatars/${user.id}/${Date.now()}`
-      const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
-      if (error) throw error
-      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
-      await updateProfile({ avatar_url: publicUrl })
-      toast.success('Avatar yeniləndi')
-    } catch {
-      toast.error(t('errors.generic'))
-    } finally {
-      setUploading(false)
-      e.target.value = ''
-    }
-  }
+  const previewUser = { ...profile, full_name: fullName, avatar_url: avatarUrl || profile?.avatar_url }
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -63,20 +45,38 @@ export default function Profile() {
               {/* Avatar */}
               <div className="flex items-center gap-4">
                 <div className="relative">
-                  <Avatar user={profile || user} size="lg" />
+                  <Avatar user={previewUser} size="lg" />
                   <button
-                    onClick={() => fileRef.current?.click()}
-                    className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary-600 text-white flex items-center justify-center shadow-md hover:bg-primary-700 transition-colors"
+                    onClick={() => setAvatarMode(v => !v)}
+                    className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary-600 text-white flex items-center justify-center shadow-md hover:bg-primary-700 transition-colors text-xs"
+                    title="Avatar URL daxil et"
                   >
-                    <Camera className="w-3.5 h-3.5" />
+                    <Link2 className="w-3.5 h-3.5" />
                   </button>
-                  <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
                 </div>
                 <div>
                   <p className="font-semibold text-gray-900 dark:text-white">{profile?.full_name || 'İstifadəçi'}</p>
                   <p className="text-sm text-gray-500">{user?.email}</p>
                 </div>
               </div>
+
+              {/* Avatar URL input */}
+              {avatarMode && (
+                <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 space-y-2">
+                  <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                    Google Drive, Imgur, GitHub və ya hər hansı şəkil URL-i yapışdırın
+                  </p>
+                  <input
+                    value={avatarUrl}
+                    onChange={e => setAvatarUrl(e.target.value)}
+                    placeholder="https://..."
+                    className="input text-sm"
+                  />
+                  <p className="text-xs text-gray-400">
+                    Google Drive: Faylı "Hər kəs" ilə paylaşın → "Linki kopyala" → burada istifadə edin
+                  </p>
+                </div>
+              )}
 
               <form onSubmit={handleSave} className="space-y-4">
                 <Input
@@ -91,6 +91,17 @@ export default function Profile() {
                 />
                 <Button type="submit" loading={saving}>{t('common.save')}</Button>
               </form>
+            </div>
+
+            {/* Storage tips */}
+            <div className="mt-4 p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+              <p className="text-sm font-semibold text-green-700 dark:text-green-400 mb-2">💡 Pulsuz limiti qorumaq üçün</p>
+              <ul className="text-xs text-green-600 dark:text-green-400 space-y-1">
+                <li>✓ Faylları Google Drive / Mega-da saxlayın, link əlavə edin</li>
+                <li>✓ Şəkilləri Imgur.com-a yükləyin, link istifadə edin</li>
+                <li>✓ Supabase-ə həftədə 1 dəfə girin (pause olmasın)</li>
+                <li>✓ DB limit: 500MB — task məlumatları üçün çox artıqdır</li>
+              </ul>
             </div>
           </div>
         </main>
