@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { LayoutGrid, CheckCircle2, Clock, AlertCircle, Plus } from 'lucide-react'
+import { LayoutGrid, CheckCircle2, Clock, AlertCircle, Trophy, TrendingUp } from 'lucide-react'
 import { useAuthStore } from '../store/authStore'
 import { useProjectStore } from '../store/projectStore'
 import { supabase } from '../services/supabase'
 import Sidebar from '../components/layout/Sidebar'
 import Header from '../components/layout/Header'
+import Avatar from '../components/ui/Avatar'
 import { STATUSES } from '../utils/constants'
 
 function StatCard({ icon: Icon, label, value, color }) {
@@ -29,27 +30,32 @@ export default function Dashboard() {
   const { user } = useAuthStore()
   const { workspaces, fetchWorkspaces, projects, currentWorkspace } = useProjectStore()
   const [allTasks, setAllTasks] = useState([])
+  const [members, setMembers] = useState([])
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (user) fetchWorkspaces(user.id)
   }, [user])
 
-  // Fetch all tasks for current workspace's projects
   useEffect(() => {
-    if (!projects.length) return
+    if (!projects.length || !currentWorkspace) return
     setLoading(true)
     const projectIds = projects.map(p => p.id)
-    supabase
-      .from('tasks')
-      .select('id, status, due_date, project_id, assignee_id, title')
-      .in('project_id', projectIds)
-      .is('parent_task_id', null)
-      .then(({ data, error }) => {
-        if (!error && data) setAllTasks(data)
-        setLoading(false)
-      })
-  }, [projects])
+
+    Promise.all([
+      supabase.from('tasks')
+        .select('id, status, due_date, project_id, assignee_id, title')
+        .in('project_id', projectIds)
+        .is('parent_task_id', null),
+      supabase.from('workspace_members')
+        .select('user_id, role, profile:profiles(id, full_name, avatar_url, email)')
+        .eq('workspace_id', currentWorkspace.id),
+    ]).then(([tasksRes, membersRes]) => {
+      if (!tasksRes.error) setAllTasks(tasksRes.data || [])
+      if (!membersRes.error) setMembers(membersRes.data || [])
+      setLoading(false)
+    })
+  }, [projects, currentWorkspace?.id])
 
   const myTasks = allTasks.filter(t => t.assignee_id === user?.id)
   const overdueTasks = allTasks.filter(t => t.due_date && new Date(t.due_date) < new Date() && t.status !== 'done')
@@ -169,15 +175,12 @@ export default function Dashboard() {
               <div className="card p-5 lg:col-span-2">
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Mənim tapşırıqlarım ({myTasks.length})</h3>
                 <div className="space-y-2">
-                  {myTasks.slice(0, 8).map(t => {
+                  {myTasks.slice(0, 6).map(t => {
                     const proj = projects.find(p => p.id === t.project_id)
                     const status = STATUSES.find(s => s.value === t.status)
                     return (
-                      <div
-                        key={t.id}
-                        onClick={() => navigate(`/project/${t.project_id}`)}
-                        className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
-                      >
+                      <div key={t.id} onClick={() => navigate(`/project/${t.project_id}`)}
+                        className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors">
                         <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: status?.color }} />
                         <span className="flex-1 text-sm text-gray-800 dark:text-gray-200 truncate">{t.title}</span>
                         <span className="text-xs text-gray-400 shrink-0">{proj?.icon} {proj?.name}</span>
@@ -189,6 +192,91 @@ export default function Dashboard() {
                       </div>
                     )
                   })}
+                </div>
+              </div>
+            )}
+
+            {/* User Statistics */}
+            {members.length > 0 && (
+              <div className="card p-5 lg:col-span-2">
+                <div className="flex items-center gap-2 mb-5">
+                  <TrendingUp className="w-5 h-5 text-indigo-500" />
+                  <h3 className="font-semibold text-gray-900 dark:text-white">Üzv statistikası</h3>
+                </div>
+
+                {/* Table header */}
+                <div className="grid grid-cols-7 gap-2 px-3 pb-2 border-b border-gray-100 dark:border-gray-700">
+                  <div className="col-span-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">İstifadəçi</div>
+                  <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide text-center">Cəmi</div>
+                  <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide text-center">Gözləyir</div>
+                  <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide text-center">İcra</div>
+                  <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide text-center">Bitib</div>
+                  <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide text-center">Tamamlandı</div>
+                </div>
+
+                <div className="space-y-1 mt-2">
+                  {members
+                    .map(m => {
+                      const uTasks = allTasks.filter(t => t.assignee_id === m.user_id)
+                      const todo = uTasks.filter(t => t.status === 'todo').length
+                      const inProg = uTasks.filter(t => t.status === 'in_progress').length
+                      const overdue = uTasks.filter(t => t.due_date && new Date(t.due_date) < new Date() && t.status !== 'done').length
+                      const done = uTasks.filter(t => t.status === 'done').length
+                      const total = uTasks.length
+                      const pct = total > 0 ? Math.round((done / total) * 100) : 0
+                      return { ...m, total, todo, inProg, overdue, done, pct }
+                    })
+                    .sort((a, b) => b.done - a.done)
+                    .map((m, i) => (
+                      <div key={m.user_id}
+                        className="grid grid-cols-7 gap-2 items-center px-3 py-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                        {/* User */}
+                        <div className="col-span-2 flex items-center gap-2.5 min-w-0">
+                          {i === 0 && m.done > 0 && <Trophy className="w-4 h-4 text-yellow-500 shrink-0" />}
+                          {(i !== 0 || m.done === 0) && (
+                            <span className="text-xs text-gray-400 w-4 text-center shrink-0">{i + 1}</span>
+                          )}
+                          <Avatar user={m.profile} size="sm" />
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                              {m.profile?.full_name || m.profile?.email?.split('@')[0]}
+                            </p>
+                            <p className="text-xs text-gray-400 capitalize">{m.role}</p>
+                          </div>
+                        </div>
+
+                        {/* Total */}
+                        <div className="text-center">
+                          <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">{m.total}</span>
+                        </div>
+
+                        {/* Todo */}
+                        <div className="text-center">
+                          <span className={`text-sm font-medium ${m.todo > 0 ? 'text-gray-500' : 'text-gray-300 dark:text-gray-600'}`}>{m.todo}</span>
+                        </div>
+
+                        {/* In Progress */}
+                        <div className="text-center">
+                          <span className={`text-sm font-medium ${m.inProg > 0 ? 'text-blue-500' : 'text-gray-300 dark:text-gray-600'}`}>{m.inProg}</span>
+                        </div>
+
+                        {/* Overdue */}
+                        <div className="text-center">
+                          <span className={`text-sm font-medium ${m.overdue > 0 ? 'text-red-500' : 'text-gray-300 dark:text-gray-600'}`}>{m.overdue}</span>
+                        </div>
+
+                        {/* Done + progress */}
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+                            <div className="h-full bg-green-500 rounded-full transition-all"
+                              style={{ width: `${m.pct}%` }} />
+                          </div>
+                          <span className={`text-xs font-medium shrink-0 w-8 text-right ${m.done > 0 ? 'text-green-600' : 'text-gray-300 dark:text-gray-600'}`}>
+                            {m.pct}%
+                          </span>
+                        </div>
+                      </div>
+                    ))}
                 </div>
               </div>
             )}
